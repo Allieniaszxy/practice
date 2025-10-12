@@ -1,4 +1,6 @@
 const userModel = require("../models/userModel");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 
 const signUp = async (req, res) => {
   try {
@@ -54,9 +56,9 @@ const signIn = async (req, res) => {
   }
 };
 
-const getSingleUser = async (req, res) => {
-  try {
-  } catch (error) {}
-};
+// const getSingleUser = async (req, res) => {
+//   try {
+//   } catch (error) {}
+// };
 
 module.exports = { signUp, signIn };
