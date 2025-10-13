@@ -56,9 +56,92 @@ const signIn = async (req, res) => {
   }
 };
 
-// const getSingleUser = async (req, res) => {
-//   try {
-//   } catch (error) {}
-// };
+const getSingleUser = async (req, res) => {
+  try {
+    const singleUser = await userModel.findById(req.params.id);
+    res.status(200).json({
+      message: "SIngle User gotten successfully",
+      data: singleUser,
+    });
+  } catch (error) {
+    res.status(400).json({
+      message: "Error getting single user",
+      data: error,
+    });
+  }
+};
 
-module.exports = { signUp, signIn };
+const getAllUsers = async (req, res) => {
+  try {
+    const getUsers = await userModel.find();
+    res.status.json({
+      message: "ALl users gotten successfully",
+      data: getUsers,
+    });
+  } catch (error) {
+    res.status(400).json({
+      message: "Error getting all Users",
+      data: error,
+    });
+  }
+};
+
+const updateUsers = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updates = req.body;
+    const update = await userModel.findByIdAndUpdate(id, updates, {
+      new: true,
+      runValidators: true,
+    });
+    if (!update) {
+      return res.status(404).json({
+        message: "User not found",
+      });
+    }
+
+    res.status(200).json({
+      message: "User updated successfully",
+      data: update,
+    });
+  } catch (error) {
+    res.status(400).json({
+      message: "Error updating user",
+      error: error.message,
+    });
+  }
+};
+
+const deleteUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const deletedUser = await userModel.findByIdAndDelete(id);
+
+    if (!deletedUser) {
+      return res.status(404).json({
+        message: "User not found",
+      });
+    }
+
+    res.status(200).json({
+      message: "User deleted successfully",
+      data: deletedUser,
+    });
+  } catch (error) {
+    console.error("Error deleting user:", error);
+    res.status(400).json({
+      message: "Error deleting user",
+      error: error.message,
+    });
+  }
+};
+
+module.exports = {
+  signUp,
+  signIn,
+  getSingleUser,
+  getAllUsers,
+  updateUsers,
+  deleteUser,
+};
