@@ -5,6 +5,14 @@ const jwt = require("jsonwebtoken");
 const signUp = async (req, res) => {
   try {
     const { name, email, password } = req.body;
+    const existingUser = await userModel.find({ email });
+
+    if (existingUser) {
+      return res.status(400).json({
+        message: "User already exists. Please log in instead",
+      });
+    }
+
     const genSalt = await bcrypt.genSalt(10);
     const hashPassword = await bcrypt.hash(password, genSalt);
 
@@ -58,7 +66,7 @@ const signIn = async (req, res) => {
 
 const getSingleUser = async (req, res) => {
   try {
-    const singleUser = await userModel.findById(req.params.id);
+    const singleUser = await userModel.findById(req.params.userID);
     res.status(200).json({
       message: "SIngle User gotten successfully",
       data: singleUser,
@@ -88,9 +96,9 @@ const getAllUsers = async (req, res) => {
 
 const updateUsers = async (req, res) => {
   try {
-    const { id } = req.params;
+    const { userID } = req.params;
     const updates = req.body;
-    const update = await userModel.findByIdAndUpdate(id, updates, {
+    const update = await userModel.findByIdAndUpdate(userID, updates, {
       new: true,
       runValidators: true,
     });
@@ -114,9 +122,9 @@ const updateUsers = async (req, res) => {
 
 const deleteUser = async (req, res) => {
   try {
-    const { id } = req.params;
+    const { userID } = req.params;
 
-    const deletedUser = await userModel.findByIdAndDelete(id);
+    const deletedUser = await userModel.findByIdAndDelete(userID);
 
     if (!deletedUser) {
       return res.status(404).json({

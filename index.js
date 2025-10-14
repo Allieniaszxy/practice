@@ -1,5 +1,6 @@
 const express = require("express");
 const userRouter = require("./src/routers/userRoute");
+const productRouter = require("./src/routers/productRoute");
 const app = express();
 require("dotenv").config();
 require("./src/config/db");
@@ -14,6 +15,7 @@ app.get("/", (req, res) => {
 });
 
 app.use("/api/users", userRouter);
+app.use("/api/products", productRouter);
 
 app.listen(port, () => {
   console.log(`Server listening on  PORt: ${port}`);
