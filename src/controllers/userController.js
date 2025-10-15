@@ -82,11 +82,18 @@ const getSingleUser = async (req, res) => {
 const getAllUsers = async (req, res) => {
   try {
     const getUsers = await userModel.find();
-    res.status.json({
-      message: "ALl users gotten successfully",
+    if (!getUsers || getUsers.length === 0) {
+      return res.status(404).json({
+        message: "No users found in the database",
+        data: [],
+      });
+    }
+    res.status(200).json({
+      message: "All users gotten successfully",
       data: getUsers,
     });
   } catch (error) {
+    console.error("❌ Error getting users:", error);
     res.status(400).json({
       message: "Error getting all Users",
       data: error,

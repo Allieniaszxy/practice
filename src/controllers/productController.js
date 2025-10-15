@@ -1,27 +1,46 @@
 const productModel = require("../models/productModel");
 const userModel = require("../models/userModel");
+const fs = require("fs");
+const cloudinary = require("../config/cloudinary");
+const mongoose = require("mongoose");
 
 const newProduct = async (req, res) => {
   try {
+    console.log("🟢 req.file:", req.file);
+    console.log("🟢 req.body:", req.body);
+    console.log("🟢 req.params:", req.params);
     const { productName, quantity, price, description } = req.body;
 
-    const cloudImage = await cloudinary.uploader.upload(req.file.path);
+    if (!req.file) {
+      return res.status(400).json({ message: "No file uploaded" });
+    }
+
+    const path = req.file.path.replace(/\\/g, "/");
+    const cloudImage = await cloudinary.uploader.upload(path);
+    console.log("cloudinary upload result:", cloudImage);
+    fs.unlinkSync(req.file.path);
     const getUser = await userModel.findById(req.params.productUserID);
 
-    const postProduct = await new productModel({
+    if (!getUser) {
+      return res.status(404).json({
+        message: "User not found",
+      });
+    }
+    const postProduct = new productModel({
       productName,
       quantity,
       price,
       description,
       productImage: cloudImage.secure_url,
       productImageID: cloudImage.public_id,
+      productOwner: getUser._id,
     });
 
     postProduct.productOwner = getUser;
-    postProduct.save();
+    await postProduct.save();
 
     getUser.product.push(new mongoose.Types.ObjectId(postProduct._id));
-    getUser.save();
+    await getUser.save();
 
     res.status(201).json({
       message: "New Product added successfully",
@@ -30,7 +49,8 @@ const newProduct = async (req, res) => {
   } catch (error) {
     res.status(400).json({
       message: "Failed to add new product",
-      data: error,
+      error: error.message,
+      stack: error.stack,
     });
   }
 };
