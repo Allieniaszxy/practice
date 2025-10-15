@@ -105,34 +105,35 @@ const getOneProduct = async (req, res) => {
 
 const updateProduct = async (req, res) => {
   try {
-    const { id } = req.params;
-    const { productName, quantity, price, description } = req.body;
+    console.log("🟢 req.params:", req.params);
+    console.log("🟢 req.body:", req.body);
+    console.log("🟢 req.file:", req.file);
 
-    //check if the  product exists
-    const product = await productModel.findById(id);
-    if (!product) {
-      return res.status(404).json({
-        message: "Product not found",
+    const { id } = req.params;
+    const { productName, quantity, price, description } = req.body || {};
+
+    if (!req.body) {
+      return res.status(400).json({
+        message: "Request body missing. Did you send form-data?",
       });
     }
+    const product = await productModel.findById(id);
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
+    }
 
-    //if a new image was uploaded, replace it on cloudinary
     if (req.file) {
-      //delete old image from cloudinary
+      console.log("🟢 Replacing old image on Cloudinary...");
       await cloudinary.uploader.destroy(product.productImageID);
-      //upload new image
       const newImage = await cloudinary.uploader.upload(req.file.path);
-
       product.productImage = newImage.secure_url;
       product.productImageID = newImage.public_id;
     }
-    // update product details
+
     product.productName = productName || product.productName;
     product.quantity = quantity || product.quantity;
     product.price = price || product.price;
     product.description = description || product.description;
-
-    //save the updated product
 
     const updatedProduct = await product.save();
 
@@ -141,9 +142,11 @@ const updateProduct = async (req, res) => {
       data: updatedProduct,
     });
   } catch (error) {
+    console.error("❌ Error updating product:", error);
     res.status(400).json({
       message: "Error updating product",
-      data: error,
+      error: error.message,
+      stack: error.stack,
     });
   }
 };
